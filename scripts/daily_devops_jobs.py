@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 import base64
 from google import genai
 import google.genai as genai
-
+ 
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GOOGLE_CSE_API_KEY = os.getenv("GOOGLE_CSE_API_KEY")
@@ -33,6 +33,35 @@ SEARCH_QUERIES = [
     'graduate DevOps jobs at top startups',
     'graduate DevOps jobs at fast-growing startups',
 ]
+
+# Gemini 2.5 Pro client setup
+def get_gemini_client():
+    return genai.Client(api_key=GEMINI_API_KEY)
+
+def gemini_25pro(prompt):
+    client = get_gemini_client()
+    model = "gemini-2.5-pro"
+    contents = [
+        types.Content(
+            role="user",
+            parts=[
+                types.Part.from_text(text=prompt),
+            ],
+        ),
+    ]
+    generate_content_config = types.GenerateContentConfig(
+        thinking_config=types.ThinkingConfig(thinking_budget=-1),
+        response_mime_type="text/plain",
+    )
+    response_text = ""
+    for chunk in client.models.generate_content_stream(
+        model=model,
+        contents=contents,
+        config=generate_content_config,
+    ):
+        if hasattr(chunk, "text"):
+            response_text += chunk.text
+    return response_text.strip()
 
 def search_google_jobs(query):
     url = "https://www.googleapis.com/customsearch/v1"
@@ -71,15 +100,6 @@ def parse_date_from_item(item):
     # Fallback: not found
     return None
 
-def gemini_summarize(text, prompt):
-    genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-pro')
-    try:
-        response = model.generate_content(f"{prompt}\n\n{text}")
-        return response.text if hasattr(response, 'text') else str(response)
-    except Exception:
-        return ""
-
 def send_email(subject, html_body, to_addr):
     msg = MIMEMultipart()
     msg['From'] = GMAIL_ADDRESS
@@ -92,9 +112,16 @@ def send_email(subject, html_body, to_addr):
     server.sendmail(GMAIL_ADDRESS, to_addr, msg.as_string())
     server.quit()
 
+def summarize_job(snippet):
+    prompt = f"Summarize this job posting for a fresher DevOps applicant:\n\n{snippet}"
+    return gemini_25pro(prompt)
+
 def get_linkedin_and_email(job_title, company):
-    prompt = f"Find either the LinkedIn profile URL of the hiring manager or recruiter, or the careers or HR email for a job titled '{job_title}' at '{company}' (if possible, else return 'Not found')."
-    return gemini_summarize("", prompt)
+    prompt = (
+        f"Find either the LinkedIn profile URL of the hiring manager or recruiter, "
+        f"or the careers or HR email for a job titled '{job_title}' at '{company}' (if possible, else return 'Not found')."
+    )
+    return gemini_25pro(prompt)
 
 def make_linkedin_message(job_title, company, link):
     prompt = (
@@ -102,7 +129,7 @@ def make_linkedin_message(job_title, company, link):
         f"Job Title: {job_title}\nCompany: {company}\nApplication Link: {link}. "
         "Make it polite, enthusiastic, and tailored for a first-time applicant."
     )
-    return gemini_summarize("", prompt)
+    return gemini_25pro(prompt)
 
 def main():
     all_jobs = []
@@ -122,7 +149,7 @@ def main():
                 continue
             seen_links.add(link)
             snippet = item.get("snippet", "")
-            desc = gemini_summarize(snippet, "Summarize this job posting for a fresher DevOps applicant:")
+            desc = summarize_job(snippet)
             company = ""
             if "|" in job_title:
                 parts = job_title.split("|")
