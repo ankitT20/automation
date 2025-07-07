@@ -5,7 +5,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta, timezone
 import base64
+import os
 from google import genai
+from google.genai import types
 import google.genai as genai
  
 
