@@ -1,6 +1,9 @@
 name: Daily DevOps Job Fetch
 
 on:
+  push:
+    branches:
+      - main
   schedule:
     - cron: "30 7 * * *"  # Every day at 1 PM IST
   workflow_dispatch:
