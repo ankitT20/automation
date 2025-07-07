@@ -19,14 +19,16 @@ GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
 TO_ADDR = "tayalank.it20+jobautomation@gmail.com"
 
 SEARCH_QUERIES = [
-    'fresher DevOps jobs at startups',
     'fresher DevOps jobs at top startups',
     'fresher DevOps jobs at fast-growing startups',
     'junior DevOps engineer jobs at startups',
     'junior DevOps engineer jobs at top startups',
     'junior DevOps engineer jobs at fast-growing startups',
+    'entry-level DevOps jobs at top startups'
+]
+"""
+    'fresher DevOps jobs at startups',
     'entry-level DevOps jobs at startups',
-    'entry-level DevOps jobs at top startups',
     'entry-level DevOps jobs at fast-growing startups',
     'DevOps internship at startups',
     'DevOps internship at top startups',
@@ -34,15 +36,14 @@ SEARCH_QUERIES = [
     'graduate DevOps jobs at startups',
     'graduate DevOps jobs at top startups',
     'graduate DevOps jobs at fast-growing startups',
-]
-
+"""
 # Gemini 2.5 Pro client setup
 def get_gemini_client():
     return genai.Client(api_key=GEMINI_API_KEY)
 
 def gemini_25pro(prompt):
     client = get_gemini_client()
-    model = "gemini-2.5-pro"
+    model = "gemini-2.5-flash"
     contents = [
         types.Content(
             role="user",
