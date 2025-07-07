@@ -4,8 +4,10 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta, timezone
+import base64
+from google import genai
+import google.genai as genai
 
-import google.generativeai as genai
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GOOGLE_CSE_API_KEY = os.getenv("GOOGLE_CSE_API_KEY")
