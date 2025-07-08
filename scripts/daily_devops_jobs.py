@@ -77,7 +77,7 @@ def gemini_25pro(prompt):
         contents=contents,
         config=generate_content_config,
     ):
-        if hasattr(chunk, "text"):
+        if hasattr(chunk, "text") and chunk.text is not None:
             response_text += chunk.text
     return response_text.strip()
 
@@ -238,7 +238,7 @@ def main():
                 "recruiter_contact": recruiter_contact,
                 "job_date": job_date
             })
-            print(f"Added job: {job_title} at {company} - Date: {job_date}")
+            print(f"Added job: {job_title} at {company} - Date: {job_date} Link: {link}")
 
     html = "<h2>Today's Fresh DevOps Job Openings (Past 24H, or date unknown)</h2>"
     if not all_jobs:
