@@ -131,7 +131,7 @@ def send_email(subject, html_body, to_addr):
     server.quit()
 
 def summarize_job(snippet):
-    prompt = f"max 150 words, Summarize this job posting for a fresher DevOps applicant:\n\n{snippet}"
+    prompt = f"max 30 words, Summarize this job posting for a fresher DevOps applicant:\n\n{snippet}"
     return gemini_25pro(prompt)
 
 
@@ -189,11 +189,11 @@ def find_recruiter_contact(company):
 # --- MAKE LINKEDIN MESSAGE (≤150 words, PERSONALIZED) ---
 def make_linkedin_message(job_title, company, link, job_desc):
     prompt = (
-        f"Write a highly personalized LinkedIn message (max 150 words) for a DevOps Engineer or Backend Developer opportunity, "
+        f"Write a highly personalized LinkedIn message (max 100 words) for a DevOps Engineer or Backend Developer opportunity, "
         f"using this context:\n{PERSONAL_CONTEXT}\n\n"
         f"Target job: {job_title} at {company}\nJob description: {job_desc}\n"
         f"Application link: {link}\n"
-        "The message should be concise, polite, enthusiastic, fresher-friendly, and highlight how my background fits the role."
+        "The message should be concise, polite, enthusiastic, fresher-friendly, and highlight how my background fits the role. Also include https://www.linkedin.com/in/ankit-tayal-ip/ in the message."
     )
     return gemini_25pro(prompt)
 
