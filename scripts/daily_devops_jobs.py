@@ -257,7 +257,6 @@ def main():
             <td>{job['company']}</td>
             <td>
                 <a href="{job['link']}" target="_blank">{job['link']}</a><br>
-                <small>{job['link']}</small>
             </td>
         </tr>
         """
