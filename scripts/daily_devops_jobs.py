@@ -24,7 +24,7 @@ Name: Ankit Tayal
 Role Seeking: DevOps Engineer / Backend Developer (Java + Spring Boot)
 Current Role: Agentic AI Engineer @ Prodigal AI
 Location: Delhi NCR, India
-Education: B.Tech in Industrial Internet of Things - GGSIPU (Graduating June 2025)
+Education: B.Tech in Industrial Internet of Things - GGSIPU
 Certifications: AWS Certified Cloud Practitioner (CLF-C02), GitHub Foundations, Oracle Cloud Infrastructure 2025 Foundations Associate
 Skills & Tools: Java, Python, JavaScript; AWS, GCP, Azure; Docker, Kubernetes, Terraform, Jenkins, GitHub Actions, Ansible, Prometheus, Grafana, Bash, Linux; Spring Boot, MongoDB, PostgreSQL, OAuth2, Kafka, REST APIs
 Notable Projects: Journal App (Spring Boot, JWT/OAuth2, MongoDB, Kafka), CI/CD Full Stack Deployment (Docker, Travis CI, AWS EB, GCP GKE), Unified Academic Services Platform (Python, Django, AWS, PostgreSQL)
@@ -33,9 +33,9 @@ Leadership: Co-Lead, Cloud Computing @ Google Developer Student Club USAR
 """
 
 SEARCH_QUERIES = [
-    'fresher DevOps jobs at top startups in (Delhi OR Gurugram OR Noida)',
-    'junior DevOps engineer jobs at top startups in (Delhi OR Gurugram OR Noida)',
-    'entry-level DevOps jobs at top startups in (Delhi OR Gurugram OR Noida)'
+    'fresher "DevOps" jobs at top startups in ("Delhi NCR" OR "Gurugram" OR "Noida")',
+    'junior "DevOps" engineer jobs at top startups in ("Delhi NCR" OR "Gurugram" OR "Noida")',
+    'entry-level "DevOps" jobs at startups in ("Delhi NCR" OR "Gurugram" OR "Noida")'
 ]
 
 """
@@ -135,26 +135,26 @@ def summarize_job(snippet):
     return gemini_25pro(prompt)
 
 
-def extract_job_posting_url(item):
-    pagemap = item.get("pagemap", {})
-    # Prefer job posting URLs from pagemap if available
-    if "metatags" in pagemap:
-        for meta in pagemap["metatags"]:
-            for key, value in meta.items():
-                if "joburl" in key.lower() or "apply" in key.lower():
-                    return value
-    # Check for og:url or canonical
-    if "metatags" in pagemap:
-        for meta in pagemap["metatags"]:
-            for key, value in meta.items():
-                if key.lower() in ["og:url", "twitter:url", "canonical"]:
-                    return value
-    if "jobposting" in pagemap:
-        for job in pagemap["jobposting"]:
-            for key, value in job.items():
-                if "url" in key.lower():
-                    return value
-    return item.get("link", "")
+# def extract_job_posting_url(item):
+#     pagemap = item.get("pagemap", {})
+#     # Prefer job posting URLs from pagemap if available
+#     if "metatags" in pagemap:
+#         for meta in pagemap["metatags"]:
+#             for key, value in meta.items():
+#                 if "joburl" in key.lower() or "apply" in key.lower():
+#                     return value
+#     # Check for og:url or canonical
+#     if "metatags" in pagemap:
+#         for meta in pagemap["metatags"]:
+#             for key, value in meta.items():
+#                 if key.lower() in ["og:url", "twitter:url", "canonical"]:
+#                     return value
+#     if "jobposting" in pagemap:
+#         for job in pagemap["jobposting"]:
+#             for key, value in job.items():
+#                 if "url" in key.lower():
+#                     return value
+#     return item.get("link", "")
 
 # def get_linkedin_and_email(job_title, company):
 #     prompt = (
@@ -208,8 +208,8 @@ def main():
         print(f"Found {len(results)} results for query: {query}")
         for item in results:
             job_title = item.get("title", "No Title")
-            # link = item.get("link", "")
-            link = extract_job_posting_url(item)
+            link = item.get("link", "")
+            # link = extract_job_posting_url(item)
             if link in seen_links:
                 continue
             job_date = parse_date_from_item(item)
