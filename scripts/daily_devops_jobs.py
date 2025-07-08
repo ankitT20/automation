@@ -9,7 +9,7 @@ import os
 from google import genai
 from google.genai import types
 import google.genai as genai
- 
+
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GOOGLE_CSE_API_KEY = os.getenv("GOOGLE_CSE_API_KEY")
@@ -18,11 +18,26 @@ GMAIL_ADDRESS = os.getenv("GMAIL_ADDRESS")
 GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD")
 TO_ADDR = "tayalank.it20+jobautomation@gmail.com"
 
+# --- PERSONAL CONTEXT ---
+PERSONAL_CONTEXT = """
+Name: Ankit Tayal
+Role Seeking: DevOps Engineer / Backend Developer (Java + Spring Boot)
+Current Role: Agentic AI Engineer @ Prodigal AI
+Location: Delhi NCR, India
+Education: B.Tech in Industrial Internet of Things - GGSIPU (Graduating June 2025)
+Certifications: AWS Certified Cloud Practitioner (CLF-C02), GitHub Foundations, Oracle Cloud Infrastructure 2025 Foundations Associate
+Skills & Tools: Java, Python, JavaScript; AWS, GCP, Azure; Docker, Kubernetes, Terraform, Jenkins, GitHub Actions, Ansible, Prometheus, Grafana, Bash, Linux; Spring Boot, MongoDB, PostgreSQL, OAuth2, Kafka, REST APIs
+Notable Projects: Journal App (Spring Boot, JWT/OAuth2, MongoDB, Kafka), CI/CD Full Stack Deployment (Docker, Travis CI, AWS EB, GCP GKE), Unified Academic Services Platform (Python, Django, AWS, PostgreSQL)
+Experience Highlights: Designed LLM inference pipelines (Prodigal AI), Built real-time stock data visualizations & analytics pipelines (StockGro)
+Leadership: Co-Lead, Cloud Computing @ Google Developer Student Club USAR
+"""
+
 SEARCH_QUERIES = [
-    'fresher DevOps jobs at top startups',
-    'junior DevOps engineer jobs at top startups',
-    'entry-level DevOps jobs at top startups'
+    'fresher DevOps jobs at top startups in (Delhi OR Gurugram OR Noida)',
+    'junior DevOps engineer jobs at top startups in (Delhi OR Gurugram OR Noida)',
+    'entry-level DevOps jobs at top startups in (Delhi OR Gurugram OR Noida)'
 ]
+
 """
     'junior DevOps engineer jobs at startups',
     'junior DevOps engineer jobs at fast-growing startups',
@@ -116,24 +131,73 @@ def send_email(subject, html_body, to_addr):
     server.quit()
 
 def summarize_job(snippet):
-    prompt = f"Summarize this job posting for a fresher DevOps applicant:\n\n{snippet}"
+    prompt = f"max 150 words, Summarize this job posting for a fresher DevOps applicant:\n\n{snippet}"
     return gemini_25pro(prompt)
 
-def get_linkedin_and_email(job_title, company):
+
+def extract_job_posting_url(item):
+    pagemap = item.get("pagemap", {})
+    # Prefer job posting URLs from pagemap if available
+    if "metatags" in pagemap:
+        for meta in pagemap["metatags"]:
+            for key, value in meta.items():
+                if "joburl" in key.lower() or "apply" in key.lower():
+                    return value
+    # Check for og:url or canonical
+    if "metatags" in pagemap:
+        for meta in pagemap["metatags"]:
+            for key, value in meta.items():
+                if key.lower() in ["og:url", "twitter:url", "canonical"]:
+                    return value
+    if "jobposting" in pagemap:
+        for job in pagemap["jobposting"]:
+            for key, value in job.items():
+                if "url" in key.lower():
+                    return value
+    return item.get("link", "")
+
+# def get_linkedin_and_email(job_title, company):
+#     prompt = (
+#         f"Find either the LinkedIn profile URL of the hiring manager or recruiter, "
+#         f"or the careers or HR email for a job titled '{job_title}' at '{company}' (if possible, else return 'Not found')."
+#     )
+#     return gemini_25pro(prompt)
+
+# def make_linkedin_message(job_title, company, link):
+#     prompt = (
+#         f"max 150 words, Write a personalized LinkedIn outreach message for a fresher/junior DevOps applicant. "
+#         f"Job Title: {job_title}\nCompany: {company}\nApplication Link: {link}. "
+#         "Make it polite, enthusiastic, and tailored for a first-time applicant."
+#     )
+#     return gemini_25pro(prompt)
+
+# --- FIND RECRUITER CONTACT USING GOOGLE SEARCH ---
+def find_recruiter_contact(company):
+    contact_queries = [
+        f"{company} recruiter LinkedIn",
+        f"{company} HR LinkedIn",
+        f"{company} careers email",
+        f"{company} hiring manager LinkedIn",
+    ]
+    for q in contact_queries:
+        results = search_google_jobs(q)
+        if results:
+            res = results[0]
+            return f"<a href='{res.get('link')}'>{res.get('title')}</a>"
+    return "Not found."
+
+# --- MAKE LINKEDIN MESSAGE (≤150 words, PERSONALIZED) ---
+def make_linkedin_message(job_title, company, link, job_desc):
     prompt = (
-        f"Find either the LinkedIn profile URL of the hiring manager or recruiter, "
-        f"or the careers or HR email for a job titled '{job_title}' at '{company}' (if possible, else return 'Not found')."
+        f"Write a highly personalized LinkedIn message (max 150 words) for a DevOps Engineer or Backend Developer opportunity, "
+        f"using this context:\n{PERSONAL_CONTEXT}\n\n"
+        f"Target job: {job_title} at {company}\nJob description: {job_desc}\n"
+        f"Application link: {link}\n"
+        "The message should be concise, polite, enthusiastic, fresher-friendly, and highlight how my background fits the role."
     )
     return gemini_25pro(prompt)
 
-def make_linkedin_message(job_title, company, link):
-    prompt = (
-        f"Write a personalized LinkedIn outreach message for a fresher/junior DevOps applicant. "
-        f"Job Title: {job_title}\nCompany: {company}\nApplication Link: {link}. "
-        "Make it polite, enthusiastic, and tailored for a first-time applicant."
-    )
-    return gemini_25pro(prompt)
-
+# --- MAIN LOGIC ---
 def main():
     all_jobs = []
     seen_links = set()
@@ -144,7 +208,8 @@ def main():
         print(f"Found {len(results)} results for query: {query}")
         for item in results:
             job_title = item.get("title", "No Title")
-            link = item.get("link", "")
+            # link = item.get("link", "")
+            link = extract_job_posting_url(item)
             if link in seen_links:
                 continue
             job_date = parse_date_from_item(item)
@@ -159,15 +224,18 @@ def main():
                 parts = job_title.split("|")
                 if len(parts) > 1:
                     company = parts[1].strip()
-            linkedin_msg = make_linkedin_message(job_title, company, link)
-            linkedin_url_or_email = get_linkedin_and_email(job_title, company)
+            # linkedin_msg = make_linkedin_message(job_title, company, link)
+            # linkedin_url_or_email = get_linkedin_and_email(job_title, company)
+            linkedin_msg = make_linkedin_message(job_title, company, link, desc)
+            recruiter_contact = find_recruiter_contact(company)
             all_jobs.append({
                 "job_title": job_title,
                 "company": company,
                 "link": link,
                 "desc": desc,
                 "linkedin_msg": linkedin_msg,
-                "linkedin_url_or_email": linkedin_url_or_email,
+                # "linkedin_url_or_email": linkedin_url_or_email,
+                "recruiter_contact": recruiter_contact,
                 "job_date": job_date
             })
             print(f"Added job: {job_title} at {company} - Date: {job_date}")
@@ -186,7 +254,8 @@ def main():
         html += f"<b>Posted:</b> {date_str}<br>"
         html += f"<b>Apply:</b> <a href='{job['link']}'>Link</a></p>"
         html += f"<b>LinkedIn Outreach Message:</b><br><blockquote>{job['linkedin_msg']}</blockquote>"
-        html += f"<b>LinkedIn/Email for Outreach:</b><br><blockquote>{job['linkedin_url_or_email']}</blockquote><hr>"
+        # html += f"<b>LinkedIn/Email for Outreach:</b><br><blockquote>{job['linkedin_url_or_email']}</blockquote><hr>"
+        html += f"<b>Recruiter/HR Contact:</b><br><blockquote>{job['recruiter_contact']}</blockquote><hr>"
 
     send_email("Daily DevOps Job Digest (Past 24H)", html, TO_ADDR)
 
