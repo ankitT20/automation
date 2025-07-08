@@ -20,13 +20,13 @@ TO_ADDR = "tayalank.it20+jobautomation@gmail.com"
 
 SEARCH_QUERIES = [
     'fresher DevOps jobs at top startups',
-    'fresher DevOps jobs at fast-growing startups',
-    'junior DevOps engineer jobs at startups',
     'junior DevOps engineer jobs at top startups',
-    'junior DevOps engineer jobs at fast-growing startups',
     'entry-level DevOps jobs at top startups'
 ]
 """
+    'junior DevOps engineer jobs at startups',
+    'junior DevOps engineer jobs at fast-growing startups',
+    'fresher DevOps jobs at fast-growing startups',
     'fresher DevOps jobs at startups',
     'entry-level DevOps jobs at startups',
     'entry-level DevOps jobs at fast-growing startups',
@@ -141,6 +141,7 @@ def main():
     past_24h = now - timedelta(days=1)
     for query in SEARCH_QUERIES:
         results = search_google_jobs(query)
+        print(f"Found {len(results)} results for query: {query}")
         for item in results:
             job_title = item.get("title", "No Title")
             link = item.get("link", "")
@@ -169,6 +170,7 @@ def main():
                 "linkedin_url_or_email": linkedin_url_or_email,
                 "job_date": job_date
             })
+            print(f"Added job: {job_title} at {company} - Date: {job_date}")
 
     html = "<h2>Today's Fresh DevOps Job Openings (Past 24H, or date unknown)</h2>"
     if not all_jobs:
