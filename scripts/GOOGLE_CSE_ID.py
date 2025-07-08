@@ -146,5 +146,5 @@
 # www.instagram.com/*
 # www.facebook.com/*
 # www.shiksha.com/*
-
+# freshershunt.in/*
 

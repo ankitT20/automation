@@ -240,7 +240,32 @@ def main():
             })
             print(f"Added job: {job_title} at {company} - Date: {job_date} Link: {link}")
 
-    html = "<h2>Today's Fresh DevOps Job Openings (Past 24H, or date unknown)</h2>"
+    # --- SUMMARY TABLE ---
+    summary_html = """
+    <h2>Job Summary Table</h2>
+    <table border="1" cellpadding="5" cellspacing="0">
+        <tr>
+            <th>Job Title</th>
+            <th>Company</th>
+            <th>Apply Link (Visible)</th>
+        </tr>
+    """
+    for job in all_jobs:
+        summary_html += f"""
+        <tr>
+            <td>{job['job_title']}</td>
+            <td>{job['company']}</td>
+            <td>
+                <a href="{job['link']}" target="_blank">{job['link']}</a><br>
+                <small>{job['link']}</small>
+            </td>
+        </tr>
+        """
+    summary_html += "</table><br>"
+
+    # --- FULL EMAIL BODY ---
+    html = summary_html
+    html += "<h2>Today's Fresh DevOps Job Openings (Past 24H, or date unknown)</h2>"
     if not all_jobs:
         html += "<p>No new jobs found in the last 24 hours (or with a known date).</p>"
     for i, job in enumerate(all_jobs, 1):
@@ -252,12 +277,30 @@ def main():
         html += f"<p><b>Company:</b> {job['company']}<br>"
         html += f"<b>Description:</b> {job['desc']}<br>"
         html += f"<b>Posted:</b> {date_str}<br>"
-        html += f"<b>Apply:</b> <a href='{job['link']}'>Link</a></p>"
+        html += f"<b>Apply:</b> <a href='{job['link']}'>{job['link']}</a></p>"
         html += f"<b>LinkedIn Outreach Message:</b><br><blockquote>{job['linkedin_msg']}</blockquote>"
-        # html += f"<b>LinkedIn/Email for Outreach:</b><br><blockquote>{job['linkedin_url_or_email']}</blockquote><hr>"
         html += f"<b>Recruiter/HR Contact:</b><br><blockquote>{job['recruiter_contact']}</blockquote><hr>"
 
     send_email("Daily DevOps Job Digest (Past 24H)", html, TO_ADDR)
+
+    # html = "<h2>Today's Fresh DevOps Job Openings (Past 24H, or date unknown)</h2>"
+    # if not all_jobs:
+    #     html += "<p>No new jobs found in the last 24 hours (or with a known date).</p>"
+    # for i, job in enumerate(all_jobs, 1):
+    #     if job["job_date"]:
+    #         date_str = job["job_date"].strftime("%Y-%m-%d %H:%M")
+    #     else:
+    #         date_str = "<i>Date unknown - may be recent</i>"
+    #     html += f"<h3>{i}. {job['job_title']}</h3>"
+    #     html += f"<p><b>Company:</b> {job['company']}<br>"
+    #     html += f"<b>Description:</b> {job['desc']}<br>"
+    #     html += f"<b>Posted:</b> {date_str}<br>"
+    #     html += f"<b>Apply:</b> <a href='{job['link']}'>Link</a></p>"
+    #     html += f"<b>LinkedIn Outreach Message:</b><br><blockquote>{job['linkedin_msg']}</blockquote>"
+    #     # html += f"<b>LinkedIn/Email for Outreach:</b><br><blockquote>{job['linkedin_url_or_email']}</blockquote><hr>"
+    #     html += f"<b>Recruiter/HR Contact:</b><br><blockquote>{job['recruiter_contact']}</blockquote><hr>"
+
+    # send_email("Daily DevOps Job Digest (Past 24H)", html, TO_ADDR)
 
 if __name__ == "__main__":
     main()
