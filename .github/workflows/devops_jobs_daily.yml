@@ -4,8 +4,8 @@ on:
   # push:
   #   branches:
   #     - main
-  schedule:
-    - cron: "30 7 * * *"  # Every day at 1 PM IST
+  # schedule:
+  #   - cron: "30 7 * * *"  # Every day at 1 PM IST
   workflow_dispatch:
 
 jobs:
